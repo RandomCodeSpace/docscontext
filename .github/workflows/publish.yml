@@ -25,52 +25,53 @@ jobs:
         env:
           OUTPUT: CHANGELOG.md
 
-      - name: Update release notes
+      - name: Write release notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.event.release.tag_name }}
-          MODULE: github.com/${{ github.repository }}
+          REPO: ${{ github.repository }}
         run: |
-          CHANGELOG=$(cat CHANGELOG.md 2>/dev/null || echo "")
+          CHANGELOG=$(cat CHANGELOG.md 2>/dev/null || echo "_No changelog entries found._")
 
-          NOTES=$(cat <<RELEASE_NOTES
-          ## Installation
+          {
+            echo "## Install"
+            echo ""
+            echo "\`\`\`bash"
+            echo "go install github.com/${REPO}@${TAG}"
+            echo "\`\`\`"
+            echo ""
+            echo "## Build from source"
+            echo ""
+            echo "\`\`\`bash"
+            echo "git clone https://github.com/${REPO}.git"
+            echo "cd $(basename ${REPO})"
+            echo "CGO_ENABLED=0 go build -o docsgraph ."
+            echo "\`\`\`"
+            echo ""
+            echo "## Quick start"
+            echo ""
+            echo "\`\`\`bash"
+            echo "# Copy sample config"
+            echo "mkdir -p ~/.docsgraph"
+            echo "curl -sSL https://raw.githubusercontent.com/${REPO}/${TAG}/config.example.yaml \\"
+            echo "  -o ~/.docsgraph/config.yaml"
+            echo ""
+            echo "# Index documents"
+            echo "docsgraph index ./your-docs/"
+            echo ""
+            echo "# Build knowledge graph (community detection)"
+            echo "docsgraph index --finalize"
+            echo ""
+            echo "# Start MCP + Web UI server"
+            echo "docsgraph serve --port 8080"
+            echo "# Web UI  → http://localhost:8080"
+            echo "# MCP SSE → http://localhost:8080/mcp/sse"
+            echo "# REST API → http://localhost:8080/api/"
+            echo "\`\`\`"
+            echo ""
+            echo "## What's Changed"
+            echo ""
+            echo "${CHANGELOG}"
+          } > release_notes.md
 
-          ### Go install (recommended)
-          \`\`\`bash
-          go install ${MODULE}@${TAG}
-          \`\`\`
-
-          ### From source
-          \`\`\`bash
-          git clone https://github.com/${GITHUB_REPOSITORY}.git
-          cd $(basename ${GITHUB_REPOSITORY})
-          CGO_ENABLED=0 go build -o docsgraph .
-          \`\`\`
-
-          ### Quick start
-          \`\`\`bash
-          # Copy sample config
-          mkdir -p ~/.docsgraph
-          curl -sSL https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${TAG}/config.example.yaml \
-            -o ~/.docsgraph/config.yaml
-
-          # Index documents
-          docsgraph index ./your-docs/
-
-          # Finalize graph (community detection)
-          docsgraph index --finalize
-
-          # Start MCP + Web UI server
-          docsgraph serve --port 8080
-          # Web UI  → http://localhost:8080
-          # MCP SSE → http://localhost:8080/mcp/sse
-          # REST API → http://localhost:8080/api/
-          \`\`\`
-
-          ## What's Changed
-          ${CHANGELOG}
-          RELEASE_NOTES
-          )
-
-          gh release edit "$TAG" --notes "$NOTES"
+          gh release edit "$TAG" --notes-file release_notes.md
