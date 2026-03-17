@@ -190,6 +190,23 @@ func (s *Store) GetDocumentByHash(ctx context.Context, hash string) (*Document, 
 	return &d, err
 }
 
+func (s *Store) GetDocumentByPath(ctx context.Context, path string) (*Document, error) {
+	row := s.db.QueryRowContext(ctx, `SELECT id,path,title,doc_type,file_hash,structured,created_at,updated_at FROM documents WHERE path=?`, path)
+	var d Document
+	err := row.Scan(&d.ID, &d.Path, &d.Title, &d.DocType, &d.FileHash, &d.Structured, &d.CreatedAt, &d.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return &d, err
+}
+
+// DeleteDocument removes a document and all its cascading data
+// (chunks, embeddings, relationships, claims) via ON DELETE CASCADE.
+func (s *Store) DeleteDocument(ctx context.Context, id string) error {
+	_, err := s.db.ExecContext(ctx, `DELETE FROM documents WHERE id=?`, id)
+	return err
+}
+
 func (s *Store) GetDocument(ctx context.Context, id string) (*Document, error) {
 	row := s.db.QueryRowContext(ctx, `SELECT id,path,title,doc_type,file_hash,structured,created_at,updated_at FROM documents WHERE id=?`, id)
 	var d Document

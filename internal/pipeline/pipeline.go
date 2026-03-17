@@ -118,13 +118,19 @@ func (p *Pipeline) indexFile(ctx context.Context, path string, opts IndexOptions
 	h := sha256.Sum256(data)
 	hash := hex.EncodeToString(h[:])
 
-	if !opts.Force {
-		existing, err := p.store.GetDocumentByHash(ctx, hash)
-		if err != nil {
-			return err
+	// Incremental indexing: look up by path, compare hash.
+	existing, err := p.store.GetDocumentByPath(ctx, path)
+	if err != nil {
+		return err
+	}
+	if existing != nil {
+		if existing.FileHash == hash && !opts.Force {
+			return nil // unchanged — skip
 		}
-		if existing != nil {
-			return nil
+		// Content changed (or --force): delete old document and all cascading data,
+		// then fall through to re-index.
+		if err := p.store.DeleteDocument(ctx, existing.ID); err != nil {
+			return fmt.Errorf("delete stale doc: %w", err)
 		}
 	}
 
