@@ -16,62 +16,62 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate changelog
-        id: changelog
-        uses: orhun/git-cliff-action@v3
-        with:
-          config: .github/cliff.toml
-          args: --latest --strip header
-        env:
-          OUTPUT: CHANGELOG.md
-
       - name: Write release notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.event.release.tag_name }}
           REPO: ${{ github.repository }}
         run: |
-          CHANGELOG=$(cat CHANGELOG.md 2>/dev/null || echo "_No changelog entries found._")
+          python3 - <<'PYEOF'
+          import os, subprocess
 
-          {
-            echo "## Install"
-            echo ""
-            echo "\`\`\`bash"
-            echo "go install github.com/${REPO}@${TAG}"
-            echo "\`\`\`"
-            echo ""
-            echo "## Build from source"
-            echo ""
-            echo "\`\`\`bash"
-            echo "git clone https://github.com/${REPO}.git"
-            echo "cd $(basename ${REPO})"
-            echo "CGO_ENABLED=0 go build -o docsgraph ."
-            echo "\`\`\`"
-            echo ""
-            echo "## Quick start"
-            echo ""
-            echo "\`\`\`bash"
-            echo "# Copy sample config"
-            echo "mkdir -p ~/.docsgraph"
-            echo "curl -sSL https://raw.githubusercontent.com/${REPO}/${TAG}/config.example.yaml \\"
-            echo "  -o ~/.docsgraph/config.yaml"
-            echo ""
-            echo "# Index documents"
-            echo "docsgraph index ./your-docs/"
-            echo ""
-            echo "# Build knowledge graph (community detection)"
-            echo "docsgraph index --finalize"
-            echo ""
-            echo "# Start MCP + Web UI server"
-            echo "docsgraph serve --port 8080"
-            echo "# Web UI  → http://localhost:8080"
-            echo "# MCP SSE → http://localhost:8080/mcp/sse"
-            echo "# REST API → http://localhost:8080/api/"
-            echo "\`\`\`"
-            echo ""
-            echo "## What's Changed"
-            echo ""
-            echo "${CHANGELOG}"
-          } > release_notes.md
+          tag  = os.environ["TAG"]
+          repo = os.environ["REPO"]
 
-          gh release edit "$TAG" --notes-file release_notes.md
+          notes = f"""## Install
+
+          ```bash
+          go install github.com/{repo}@{tag}
+          ```
+
+          ## Build from source
+
+          ```bash
+          git clone https://github.com/{repo}.git
+          cd {repo.split('/')[-1]}
+          CGO_ENABLED=0 go build -o docsgraph .
+          ```
+
+          ## Quick start
+
+          ```bash
+          # Copy sample config
+          mkdir -p ~/.docsgraph
+          curl -sSL https://raw.githubusercontent.com/{repo}/{tag}/config.example.yaml \\
+            -o ~/.docsgraph/config.yaml
+
+          # Index documents
+          docsgraph index ./your-docs/
+
+          # Build knowledge graph (community detection)
+          docsgraph index --finalize
+
+          # Start server  (Web UI + MCP + REST API)
+          docsgraph serve --port 8080
+          ```
+
+          | Endpoint | URL |
+          |---|---|
+          | Web UI | http://localhost:8080 |
+          | MCP SSE | http://localhost:8080/mcp/sse |
+          | REST API | http://localhost:8080/api/ |
+          """
+
+          with open("release_notes.md", "w") as f:
+              f.write(notes)
+
+          subprocess.run(
+              ["gh", "release", "edit", tag, "--notes-file", "release_notes.md"],
+              check=True
+          )
+          PYEOF
