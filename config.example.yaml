@@ -1,0 +1,38 @@
+data_dir: ~/.docsgraph/data   # stores docsgraph.db
+
+llm:
+  provider: ollama             # azure | ollama | huggingface
+
+  azure:
+    endpoint: https://myresource.openai.azure.com
+    api_key: ${AZURE_OPENAI_API_KEY}
+    api_version: "2024-02-01"
+    chat_model: gpt-4o
+    embed_model: text-embedding-3-small
+
+  ollama:
+    base_url: http://localhost:11434
+    chat_model: llama3.2
+    embed_model: nomic-embed-text
+
+  huggingface:
+    base_url: http://localhost:8000    # TGI local endpoint
+    api_key: ${HF_API_KEY}
+    chat_model: mistralai/Mistral-7B-Instruct-v0.3
+    embed_model: sentence-transformers/all-MiniLM-L6-v2
+
+indexing:
+  chunk_size: 512
+  chunk_overlap: 50
+  batch_size: 20
+  workers: 4
+  extract_graph: true
+  extract_claims: true
+
+community:
+  min_community_size: 3
+  max_levels: 3
+
+server:
+  host: 127.0.0.1
+  port: 8080

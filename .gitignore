@@ -1,0 +1,17 @@
+# Binaries
+docsgraph
+docsgraph.exe
+docsgraph-linux
+docsgraph-*
+
+# Data
+*.db
+*.db-shm
+*.db-wal
+
+# Build artifacts
+dist/
+
+# OS
+.DS_Store
+Thumbs.db

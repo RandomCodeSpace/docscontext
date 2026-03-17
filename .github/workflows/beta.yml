@@ -1,0 +1,13 @@
+name: Auto Beta
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  auto-beta:
+    uses: RandomCodeSpace/central-ops/.github/workflows/reusable-auto-beta.yml@main
+    secrets: inherit
