@@ -165,12 +165,14 @@ All data lives in a single SQLite file at `$DATA_DIR/docsgraph.db`.
 
 ## Supported File Types
 
-| Type | Extension |
-|---|---|
-| PDF | `.pdf` |
-| Word | `.docx` |
-| Markdown | `.md`, `.markdown` |
-| Plain text | `.txt`, `.text` |
+| Format | Extensions | Notes |
+|---|---|---|
+| PDF | `.pdf` | Text extraction via pdfcpu; scanned/image-only PDFs yield no text |
+| Word | `.docx` | Open XML format (Office 2007+); legacy `.doc` not supported |
+| Markdown | `.md`, `.markdown` | Heading `# Title` used as document title |
+| Plain text | `.txt`, `.text` | UTF-8 encoding expected |
+
+> **Tip:** For best graph quality, prefer documents with clear structure (headings, named entities, factual prose). Scanned PDFs or heavily formatted spreadsheets will produce sparse graphs.
 
 ## License
 
