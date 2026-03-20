@@ -179,17 +179,17 @@ func CosineSimilarity(a, b []float32) float32 {
 // ── Document CRUD ─────────────────────────────────────────────────────────────
 
 type Document struct {
-	ID          string
-	Path        string
-	Title       string
-	DocType     string
-	FileHash    string
-	Structured  string
-	Version     int
-	CanonicalID string // empty on v1; ID of first version on v2+
-	IsLatest    bool
-	CreatedAt   int64
-	UpdatedAt   int64
+	ID          string `json:"id"`
+	Path        string `json:"path"`
+	Title       string `json:"title"`
+	DocType     string `json:"doc_type"`
+	FileHash    string `json:"file_hash,omitempty"`
+	Structured  string `json:"structured,omitempty"`
+	Version     int    `json:"version,omitempty"`
+	CanonicalID string `json:"canonical_id,omitempty"` // empty on v1; ID of first version on v2+
+	IsLatest    bool   `json:"is_latest,omitempty"`
+	CreatedAt   int64  `json:"created_at"`
+	UpdatedAt   int64  `json:"updated_at"`
 }
 
 // CanonicalOrID returns CanonicalID if set, otherwise the document's own ID.
